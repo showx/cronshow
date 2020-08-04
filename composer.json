@@ -1,0 +1,23 @@
+{
+    "name": "showx/cronshow",
+    "description" : "定时任务控制平台",
+    "type": "application",
+    "keywords": ["workerman","php","cronjob"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "showx",
+            "email": "9448923@qq.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.0.0",
+        "workerman/workerman": "^4.0"
+    },
+    "_comment": "linux cronjob php版",
+    "autoload": {
+        "psr-4": {
+            "Application\\": "application/"
+        }
+    }
+}
