@@ -2,6 +2,7 @@
 /**
  * Cronshow开始运行
  */
+date_default_timezone_set('PRC');
 require dirname(__FILE__).'/vendor/autoload.php';
 use Workerman\Worker;
 use Application\CronWorker;
