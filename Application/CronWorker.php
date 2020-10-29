@@ -39,7 +39,7 @@ class CronWorker extends Worker
         // chr(27) . "[42m".
         $Config = new Config();
         $runFile = $Config->get();
-        echo '[alert]cron_start_time'.date('Ymd | H:i:s',time()).PHP_EOL;
+        $this->LogEchoWrite('[alert]cron_start_time'.date('Ymd | H:i:s',time()));
         foreach($runFile as $command)
         {
             $this->LogEchoWrite("-----------------------------------------------");
