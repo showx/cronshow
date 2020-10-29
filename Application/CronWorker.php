@@ -39,10 +39,13 @@ class CronWorker extends Worker
         // chr(27) . "[42m".
         $Config = new Config();
         $runFile = $Config->get();
-        echo '[alert]cron time'.date('Ymd | H:i:s',time()).PHP_EOL;
+        echo '[alert]cron_start_time'.date('Ymd | H:i:s',time()).PHP_EOL;
         foreach($runFile as $command)
         {
-            $contents = '<?php exec($command);?>';
+            $this->LogEchoWrite("-----------------------------------------------");
+            $command_before = $command;
+	        $command = addslashes($command);
+            $contents = "<?php \$tmp=exec('{$command}');echo \$tmp;?>";
             $filename = md5($command);
             $pid_file = $this->Lock_Dir.'/'.$filename.".php";
             clearstatcache();
@@ -50,10 +53,10 @@ class CronWorker extends Worker
             //根据命令生成log
             if(!file_exists($pid_file))
             {
-                echo '[info]'.$command.' start '.PHP_EOL;
+                $this->LogEchoWrite('[info]【'.$command_before.'】-->start');
                 file_put_contents($pid_file, $contents);
-                $tmp = exec("php $pid_file").PHP_EOL;
-                echo $tmp.PHP_EOL;
+                $tmp = exec("php $pid_file");
+                $this->LogEchoWrite("[info]【{$command_before}】-->cron_result:".$tmp);
                 if($tmp)
                 {
                     // 执行完之后删除运行文件
@@ -61,25 +64,21 @@ class CronWorker extends Worker
                 }
             }else{
                 // 因为还在锁定中，所以一定要写日志，有可能死锁的状态
-                echo '[warning]'.$command.'还在运行'.PHP_EOL;
+                $this->LogEchoWrite('[warning]【'.$command_before.'】-->already running');
                 continue;
             }
-            // 运行日志
-            $date = date("Ymd");
-            $path = __DIR__.'/Log/run'.$date.'.log';
-
         }
-        echo '[alert]cron end time'.date('Ymd | H:i:s',time()).PHP_EOL;
+        $this->LogEchoWrite('[alert]cron_end_time'.date('Ymd | H:i:s',time()));
     }
 
     /**
      * 记录日志
      */
-    public function LogWrite($file,$tmp)
+    public function LogEchoWrite($Line)
     {
+        echo $Line.PHP_EOL;
         $date = date('Ymd');
-        $time = date("H:i:s");
-        file_put_contents($this->Log_Dir.'/'.$date.'.log',"[{$file} {$time}]".$tmp,FILE_APPEND|LOCK_EX);
+        file_put_contents($this->Log_Dir.'/'.$date.'.log',$Line."\r\n",FILE_APPEND|LOCK_EX);
     }
 
     /**
