@@ -42,8 +42,6 @@ class CronWorker extends Worker
         echo '[alert]cron time'.date('Ymd | H:i:s',time()).PHP_EOL;
         foreach($runFile as $command)
         {
-            // 判断有没运行，或运行超时的判断
-            $tmp = exec($command).PHP_EOL; // 阻塞
             $contents = '<?php exec($command);?>';
             $filename = md5($command);
             $pid_file = $this->Lock_Dir.'/'.$filename.".php";
@@ -54,6 +52,13 @@ class CronWorker extends Worker
             {
                 echo '[info]'.$command.' start '.PHP_EOL;
                 file_put_contents($pid_file, $contents);
+                $tmp = exec("php $pid_file").PHP_EOL;
+                echo $tmp.PHP_EOL;
+                if($tmp)
+                {
+                    // 执行完之后删除运行文件
+                    unlink($pid_file);
+                }
             }else{
                 // 因为还在锁定中，所以一定要写日志，有可能死锁的状态
                 echo '[warning]'.$command.'还在运行'.PHP_EOL;

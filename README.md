@@ -11,6 +11,8 @@
 ## 配置
 配置要启动的job
 Application/config下的配置文件
+代码里Config_example --> Config
+
 ### 按天运行
 `
 Day.php 每天某个时刻的运行
