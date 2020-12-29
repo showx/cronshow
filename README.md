@@ -45,8 +45,11 @@ return [
 ];
 `
 
-# 运行cron服务
+# 命令相关
+## 运行cron服务
 本根目录运行以下命令即可
-php start.php start -d
+php job.php start -d
 
+## 停止服务
+php job.php stop
 

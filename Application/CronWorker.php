@@ -14,7 +14,7 @@ class CronWorker extends Worker
     // 版本
     const VERSION = "1.0.0";
     // 运行用户
-    public $USER = '';
+    public $USER = 'www-data';
     // 运行锁
     public $LOCK = 0;
     // 运行最少单位，没微秒的概念
@@ -79,8 +79,13 @@ class CronWorker extends Worker
     public function LogEchoWrite($Line)
     {
         echo $Line.PHP_EOL;
-        $date = date('YmdH');
-        file_put_contents($this->Log_Dir.'/'.$date.'.log',$Line."\r\n",FILE_APPEND|LOCK_EX);
+        $date = date('Ymd');
+        $hour = date('H');
+        if(!file_exists($this->Log_Dir.'/'.$date."/"))
+        {
+            mkdir($this->Log_Dir.'/'.$date."/",0644);
+        }
+        file_put_contents($this->Log_Dir.'/'.$date."/".$hour.'.log',$Line."\r\n",FILE_APPEND|LOCK_EX);
     }
 
     /**
