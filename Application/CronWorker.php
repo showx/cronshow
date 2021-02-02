@@ -7,26 +7,12 @@
 namespace Application;
 
 use Workerman\Lib\Timer;
-use Workerman\Worker;
+use Workerman\Connection\AsyncTcpConnection;
 
-class CronWorker extends Worker
+class CronWorker extends CronBaseWorker
 {
-    // 版本
-    const VERSION = "1.0.0";
-    // 运行用户
-    public $USER = 'www-data';
-    // 运行锁
-    public $LOCK = 0;
-    // 运行最少单位，没微秒的概念
-    public static $INTERVAL = 1;
-    public $Log_Dir = __DIR__.'/Log';
-    public $Lock_Dir = __DIR__.'/Lock';
-
-    public function __construct($socket_name = '', $context_option = array())
-    {
-        parent::__construct($socket_name, $context_option);
-    }
-
+    public $name = 'CronWorker';
+    public $count = 1;
     public function onWorkerStart()
     {
         // 定时器
@@ -41,10 +27,10 @@ class CronWorker extends Worker
         // chr(27) . "[42m".
         $Config = new Config();
         $runFile = $Config->get();
+        $this->LogEchoWrite("-----------------------------------------------");
         $this->LogEchoWrite('[alert]cron_start_time'.date('Ymd | H:i:s',time()));
         foreach($runFile as $command)
         {
-            $this->LogEchoWrite("-----------------------------------------------");
             $command_before = $command;
 	        $command = addslashes($command);
             $contents = "<?php \$tmp=exec('{$command}');echo \$tmp;?>";
@@ -55,21 +41,32 @@ class CronWorker extends Worker
             //根据命令生成log
             if(!file_exists($pid_file))
             {
+                // 没有文件先生成文件先
                 $this->LogEchoWrite('[info]【'.$command_before.'】-->start');
                 file_put_contents($pid_file, $contents);
-                $tmp = exec("php $pid_file");
-                $this->LogEchoWrite("[info]【{$command_before}】-->cron_result:".$tmp);
-                if($tmp)
-                {
-                    // 执行完之后删除运行文件
-                    unlink($pid_file);
-                }
-            }else{
-                // 因为还在锁定中，所以一定要写日志，有可能死锁的状态
-                $this->LogEchoWrite('[warning]【'.$command_before.'】-->already running');
-                continue;
+                // // 这里会阻塞一下, 避免阻塞的处理 , 这里变成异步之后，要判断有没删除文件
+                // $tmp = exec("php $pid_file >/dev/null  &",$output);
             }
         }
+
+        $task_connection = new AsyncTcpConnection('Text://127.0.0.1:12345');
+        // 任务及参数数据
+        $task_data = array(
+            'runfile' => $runFile
+        );
+        // 发送数据
+        $task_connection->send(json_encode($task_data));
+        // 异步获得结果
+        $task_connection->onMessage = function($task_connection, $task_result)
+        {
+            echo 'end';
+            // 回调之后不管它了
+            // 获得结果后记得关闭异步连接
+            $task_connection->close();
+        };
+        // 执行异步连接
+        $task_connection->connect();
+
         $this->LogEchoWrite('[alert]cron_end_time'.date('Ymd | H:i:s',time()));
     }
 
@@ -83,7 +80,8 @@ class CronWorker extends Worker
         $hour = date('H');
         if(!file_exists($this->Log_Dir.'/'.$date."/"))
         {
-            mkdir($this->Log_Dir.'/'.$date."/",0644);
+            // www-data能查看日志
+            mkdir($this->Log_Dir.'/'.$date."/",0755);
         }
         file_put_contents($this->Log_Dir.'/'.$date."/".$hour.'.log',$Line."\r\n",FILE_APPEND|LOCK_EX);
     }
