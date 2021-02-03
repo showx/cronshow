@@ -6,16 +6,13 @@
 
 namespace Application;
 
-use Workerman\Lib\Timer;
-use Workerman\Connection\AsyncTcpConnection;
-
 class JobWorker extends CronBaseWorker
 {
     public $name = 'JobWorker_cronTaskWorker';
     public $count = 30;
-
     public function onMessage($connection, $task_data)
     {
+        $task_result = '';
         $task_data = json_decode($task_data,true);
         if($task_data)
         {
@@ -31,9 +28,13 @@ class JobWorker extends CronBaseWorker
                 $t2 = exec("ps -aux|grep {$pid_file}|grep -v 'grep' ");
                 if(empty($t2))
                 {
+                    $runstarttime = microtime(true);
                     // 这里阻塞一下没问题的
                     $tmp = exec("php $pid_file",$output);
-                    $this->LogEchoWrite("[info]【{$command}】-->cron_result:".var_export($output,true));
+                    $runendtime = microtime(true);
+                    // 计算出运行时间
+                    $runningtime = $runendtime - $runstarttime;
+                    $this->LogEchoWrite("[info]【{$command}】runtime:{$runningtime}-->cron_result:".var_export($output,true));
                     if($tmp)
                     {
                         unlink($pid_file);
@@ -46,8 +47,8 @@ class JobWorker extends CronBaseWorker
                     continue;
                 }
             }
+            $task_result = $task_data['time'].'|task end';
         }
-        $task_result = 'test end';
         // 发送结果
         $connection->send(json_encode($task_result));
     }

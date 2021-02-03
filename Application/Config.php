@@ -45,7 +45,7 @@ Class Config
      * @param string $type
      * @return mixed
      */
-    public function get($type = '')
+    public function get()
     {
         $this->stamp();
         $this->LoadDay();
@@ -66,7 +66,7 @@ Class Config
             foreach($Day as $time => $exec)
             {
                 // 按日的计算规则
-                $timetmp = explode(":",$time);
+                $timetmp = explode(":", $time);
                 $hour = $timetmp[0];
                 $minute = $timetmp[1];
                 if(isset($timetmp[2]))
