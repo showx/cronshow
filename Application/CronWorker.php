@@ -13,6 +13,12 @@ class CronWorker extends CronBaseWorker
 {
     public $name = 'CronWorker';
     public $count = 1;
+
+    public function __construct()
+    {
+        parent::__construct("tcp://0.0.0.0:7788");
+    }
+
     public function onWorkerStart()
     {
         // 定时器

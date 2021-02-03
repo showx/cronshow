@@ -11,6 +11,12 @@ class JobWorker extends CronBaseWorker
     public $name = 'JobWorker_cronTaskWorker';
     public $count = 30;
     public $timeout = 2;
+
+    public function __construct()
+    {
+        parent::__construct("Text://0.0.0.0:12345");
+    }
+
     public function onMessage($connection, $task_data)
     {
         $task_result = '';
@@ -25,7 +31,7 @@ class JobWorker extends CronBaseWorker
                 $filename = md5($command);
                 $pid_file = $this->Lock_Dir.'/'.$filename.".php";
                 
-                // 这里要判断运营的进程有没结束
+                // 这里要判断运行的进程有没结束
                 $t2 = exec("ps -aux|grep {$pid_file}|grep -v 'grep' ");
                 if(empty($t2))
                 {
