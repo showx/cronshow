@@ -10,6 +10,7 @@ class JobWorker extends CronBaseWorker
 {
     public $name = 'JobWorker_cronTaskWorker';
     public $count = 30;
+    public $timeout = 2;
     public function onMessage($connection, $task_data)
     {
         $task_result = '';
@@ -34,6 +35,10 @@ class JobWorker extends CronBaseWorker
                     $runendtime = microtime(true);
                     // 计算出运行时间
                     $runningtime = $runendtime - $runstarttime;
+                    if($runningtime >= $this->timeout)
+                    {
+                        file_put_contents(__DIR__.'/Log/timeoutrun.txt',"very late".$command."\r\n",FILE_APPEND|LOCK_EX);
+                    }
                     $this->LogEchoWrite("[info]【{$command}】runtime:{$runningtime}-->cron_result:".var_export($output,true));
                     if($tmp)
                     {
