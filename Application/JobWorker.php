@@ -25,7 +25,7 @@ class JobWorker extends CronBaseWorker
                 $filename = md5($command);
                 $pid_file = $this->Lock_Dir.'/'.$filename.".php";
                 
-                // 这里要判断运营的进步有没结束
+                // 这里要判断运营的进程有没结束
                 $t2 = exec("ps -aux|grep {$pid_file}|grep -v 'grep' ");
                 if(empty($t2))
                 {
@@ -37,11 +37,15 @@ class JobWorker extends CronBaseWorker
                     $runningtime = $runendtime - $runstarttime;
                     if($runningtime >= $this->timeout)
                     {
-                        file_put_contents(__DIR__.'/Log/timeoutrun.txt',"very late".$command."\r\n",FILE_APPEND|LOCK_EX);
+                        file_put_contents(__DIR__.'/Log/timeoutrun.txt',"very late:".$command."\r\n",FILE_APPEND|LOCK_EX);
                     }
-                    $this->LogEchoWrite("[info]【{$command}】runtime:{$runningtime}-->cron_result:".var_export($output,true));
+                    $output = var_export($output,true);
+                    $this->LogEchoWrite("[info]【{$command}】runtime:{$runningtime}-->cron_result:".$output);
                     if($tmp)
                     {
+                        $data = json_encode(['time' => time(),'runtime'=>$runningtime,'output'=>$output]);
+                        // 这里要记录一下状态的,每次更新最后状态
+                        file_put_contents($this->Status_Dir.'/'.$filename.".txt",$data);
                         unlink($pid_file);
                     }
                     // $this->LogEchoWrite('[warning]【'.$command_before.'】-->unlink running');

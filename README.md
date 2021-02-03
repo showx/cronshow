@@ -53,3 +53,7 @@ php job.php start -d
 ## 停止服务
 php job.php stop
 
+
+## todo
+1. 增加后台管理
+2. 增加agent模式
