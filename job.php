@@ -5,9 +5,9 @@
 date_default_timezone_set('PRC');
 require dirname(__FILE__).'/vendor/autoload.php';
 use Workerman\Worker;
-use Application\CronWorker;
-use Application\JobWorker;
-use Application\WebWorker;
+use cronshow\CronWorker;
+use cronshow\JobWorker;
+use cronshow\WebWorker;
 
 // task worker，使用Text协议
 $task_worker = new JobWorker();

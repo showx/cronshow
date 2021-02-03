@@ -2,7 +2,7 @@
 /**
  * 运行web管理
  */
-namespace Application;
+namespace cronshow;
 
 class WebWorker extends CronBaseWorker
 {

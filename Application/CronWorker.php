@@ -4,7 +4,7 @@
  * Author:show
  */
 
-namespace Application;
+namespace cronshow;
 
 use Workerman\Lib\Timer;
 use Workerman\Connection\AsyncTcpConnection;

@@ -17,7 +17,8 @@
     "_comment": "linux cronjob php版",
     "autoload": {
         "psr-4": {
-            "Application\\": "Application/"
+            "Application\\": "Application/",
+            "cronshow\\": "Application/"
         }
     }
 }

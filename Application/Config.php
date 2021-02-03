@@ -4,7 +4,7 @@
  * Author:show
  */
 
-namespace Application;
+namespace cronshow;
 
 Class Config
 {
