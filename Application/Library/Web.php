@@ -15,7 +15,7 @@ Class Web
      * @todo 考虑读取超时的问题，client一般填内网ip
      * 
      */
-    public static function agentOp($url, $op="cl_list", $secret)
+    public static function agentOp($url, $op = "cl_list", $secret = '')
     {
         $gurl = "http://{$url}/?op={$op}&secret={$secret}";
         echo $gurl.PHP_EOL;
