@@ -68,11 +68,11 @@ Class Web
                         foreach($day as $dd)
                         {
                             $data = self::mdfile($dd);
-                            $txtArr[] = $daytime."|".$dd."|".$data['status'];
+                            $txtArr[] = $key."^".$daytime."|".$dd."|".$data['status'];
                         }
                     }else{
                         $data = self::mdfile($day);
-                        $txtArr[] = $daytime."|".$day."|".$data['status'];
+                        $txtArr[] = $key."^".$daytime."|".$day."|".$data['status'];
                     }
                 }
             }
@@ -124,10 +124,10 @@ Class Web
                         {
                             foreach($day as $dd)
                             {
-                                $txtArr[] = $daytime."|".$dd;
+                                $txtArr[] = $key."^".$daytime."|".$dd;
                             }
                         }else{
-                            $txtArr[] = $daytime."|".$day;
+                            $txtArr[] = $key."^".$daytime."|".$day;
                         }
                     }
                 }

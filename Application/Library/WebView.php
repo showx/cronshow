@@ -41,15 +41,15 @@ Class WebView
     public static function statusTable($data)
     {
         $table = "<table border='1'>";
-        $table .= "<tr><th>时间</th><th>命令</th><th>状态</th></tr>";
+        $table .= "<tr><th>时间</th><th>命令</th><th>状态</th><th>操作</th></tr>";
         foreach($data as $row)
         {
             $rowtmp = explode("|", $row);
             if(count($rowtmp) > 1)
             {
-                $table .= "<tr><td>{$rowtmp[0]}</td><td>{$rowtmp[1]}</td><td>{$rowtmp[2]}</td></tr>";
+                $table .= "<tr><td>{$rowtmp[0]}</td><td>{$rowtmp[1]}</td><td>{$rowtmp[2]}</td><td><a href='/?op=stop&id='>停止</a></td></tr>";
             }else{
-                $table .= "<tr><td colspan='3'>{$row}</td></tr>";
+                $table .= "<tr><td colspan='4'>{$row}</td></tr>";
             }
         }
         $table .= "</table>";
