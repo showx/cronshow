@@ -127,8 +127,10 @@ class WebWorker extends CronBaseWorker
                         $sendstatus = $connection->send($data);
                         break;
                 }
+                return true;
             }else{
                 echo 'error'.PHP_EOL;
+                return false;
             }
         }
         if($this->master == 1)
