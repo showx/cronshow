@@ -18,6 +18,7 @@ Class Web
     public static function agentOp($url, $op="cl_list", $secret)
     {
         $gurl = "http://{$url}/?op={$op}&secret={$secret}";
+        echo $gurl.PHP_EOL;
         // 这里地址不对容易死循环
         $tmp = web::httpget($gurl);
         if($tmp)
@@ -35,9 +36,9 @@ Class Web
      */
     public static function clientList()
     {
-        $dayArr = include __DIR__.'/Config/Day.php';
-        $minArr = include __DIR__.'/Config/Minute.php';
-        $secArr = include __DIR__.'/Config/Second.php';
+        $dayArr = include CRONPATH.'/Application/Config/Day.php';
+        $minArr = include CRONPATH.'/Application/Config/Minute.php';
+        $secArr = include CRONPATH.'/Application/Config/Second.php';
         $data = ['day' => $dayArr, 'min' => $minArr, 'sec' => $secArr];
         $data = json_encode($data);
         return $data;
@@ -50,13 +51,14 @@ Class Web
      */
     public static function clientStatus()
     {
-        $dayArr = include __DIR__.'/Config/Day.php';
-        $minArr = include __DIR__.'/Config/Minute.php';
-        $secArr = include __DIR__.'/Config/Second.php';
+        $dayArr = include CRONPATH.'/Application/Config/Day.php';
+        $minArr = include CRONPATH.'/Application/Config/Minute.php';
+        $secArr = include CRONPATH.'/Application/Config/Second.php';
         $tmp = ['day' => $dayArr, 'min' => $minArr, 'sec' => $secArr];
         $txtArr = [];
         foreach(['day', 'min', 'sec'] as $key)
         {
+            echo $key.PHP_EOL;
             if(isset($tmp[$key]))
             {
                 foreach($tmp[$key] as $daytime => $day)
@@ -69,7 +71,7 @@ Class Web
                             $txtArr[] = $daytime."|".$dd."|".$data['status'];
                         }
                     }else{
-                        $data = self::mdfile($dd);
+                        $data = self::mdfile($day);
                         $txtArr[] = $daytime."|".$day."|".$data['status'];
                     }
                 }
@@ -88,13 +90,15 @@ Class Web
     public static function mdfile($command = '')
     {
         $command = addslashes($command);
-        $filename = md5($command);
+        $filename = md5(trim($command));
         $lock_file = self::$Lock_Dir.'/'.$filename.".php";
         $status_file = self::$Status_Dir.'/'.$filename.".txt";
         $result = [];
         if(file_exists($status_file))
         {
             $result['status'] = file_get_contents($status_file);
+        }else{
+            $result['status'] = '';
         }
         return $result;
     }

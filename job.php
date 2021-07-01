@@ -10,8 +10,8 @@ use cronshow\CronWorker;
 use cronshow\JobWorker;
 use cronshow\WebWorker;
 
-$jobworker = new JobWorker();
-$cronworker = new CronWorker();
+// $jobworker = new JobWorker();
+// $cronworker = new CronWorker();
 $webworker = new WebWorker();
 
 // 运行所有服务

@@ -16,7 +16,7 @@ Class WebView
      */
     public static function listTable($data)
     {
-        $table = "<table>";
+        $table = "<table border='1'>";
         $table .= "<tr><th>时间</th><th>命令</th></tr>";
         foreach($data as $row)
         {
@@ -40,7 +40,7 @@ Class WebView
      */
     public static function statusTable($data)
     {
-        $table = "<table>";
+        $table = "<table border='1'>";
         $table .= "<tr><th>时间</th><th>命令</th><th>状态</th></tr>";
         foreach($data as $row)
         {

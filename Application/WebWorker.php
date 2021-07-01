@@ -11,7 +11,7 @@ class WebWorker extends CronBaseWorker
     public $name = 'WebWorker';
     public $master = 1;
     public $count = 1;
-    public $oparr = ['list', 'start', 'end'];
+    public $oparr = ['list', 'stop', 'status'];
     public $config = [];
     public $client = [];
     public $ip = "0.0.0.0";
@@ -65,14 +65,14 @@ class WebWorker extends CronBaseWorker
             switch($op)
             {
                 case 'list':
-                    $tmp = web::agentOp($host, "op_list", $secret);
+                    $tmp = web::agentOp($host, "cl_list", $secret);
                     if($tmp)
                     {
                         $txtArr = web::listData($tmp, $txtArr);
                     }
                     break;
                 case 'status':
-                    $tmp = web::agentOp($host, "op_status", $secret);
+                    $tmp = web::agentOp($host, "cl_status", $secret);
                     if($tmp)
                     {
                         $txtArr = web::statusData($tmp, $txtArr);
