@@ -37,7 +37,7 @@ class JobWorker extends CronBaseWorker
                 {
                     $runstarttime = microtime(true);
                     // 这里阻塞一下没问题的
-                    $tmp = exec("php $pid_file",$output);
+                    $tmp = exec("php $pid_file", $output);
                     $runendtime = microtime(true);
                     // 计算出运行时间
                     $runningtime = $runendtime - $runstarttime;
@@ -49,7 +49,7 @@ class JobWorker extends CronBaseWorker
                     $this->LogEchoWrite("[info]【{$command}】runtime:{$runningtime}-->cron_result:".$output);
                     if($tmp)
                     {
-                        $data = json_encode(['time' => time(),'runtime'=>$runningtime,'output'=>$output]);
+                        $data = json_encode(['time' => time(), 'runtime'=>$runningtime,'output' => $output]);
                         // 这里要记录一下状态的,每次更新最后状态
                         file_put_contents($this->Status_Dir.'/'.$filename.".txt",$data);
                         unlink($pid_file);
