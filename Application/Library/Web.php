@@ -157,24 +157,50 @@ Class Web
         return $txtArr;
     }
 
-
-    public static function httpget($url)
+    /**
+     * 同一个进程有阻塞的情况
+     *
+     * @param [type] $url
+     * @param integer $timeout
+     * @return void
+     */
+    public static function httpget($url, $timeout = 2)
     {
-        // echo 'curl_start'.PHP_EOL;
-        $ch = curl_init(); 
+        
+        $ch = curl_init();
+        $headers = array();
+        $headers[] = 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8';
+        $headers[] = 'Accept-Encoding: gzip, deflate';
+        $headers[] = 'Accept-Language: en-US,en;q=0.5';
+        $headers[] = 'Cache-Control: no-cache';
+        $headers[] = 'Content-Type: application/x-www-form-urlencoded; charset=utf-8';
+        $headers[] = 'X-MicrosoftAjax: Delta=true';
+        
+        // $cookie = tempnam ("/tmp", "CURLCOOKIE");
+        // curl_setopt($ch, CURLOPT_COOKIEJAR, $cookie );
+        // curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false );
+
+        // curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true );
+        // curl_setopt($ch, CURLOPT_ENCODING, "" );
+
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        // curl_setopt($ch, CURLOPT_USERAGENT, 'Your application name');
+        curl_setopt($ch, CURLOPT_USERAGENT,'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 2.0.50727;)');
+
         // set url 
         curl_setopt($ch, CURLOPT_URL, $url); 
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 2);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         //return the transfer as a string 
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); 
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
         curl_setopt($ch, CURLOPT_VERBOSE, true); // curl debug
         curl_setopt($ch, CURLOPT_STDERR, fopen(CRONPATH.'/Application/Log/curl.log', 'w+'));
-
-
         // $output contains the output string 
         $output = curl_exec($ch); 
+
+        $response = curl_getinfo( $ch );
 
         if (curl_errno($ch)) {
             $error_msg = curl_error($ch);

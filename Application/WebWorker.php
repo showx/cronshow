@@ -10,7 +10,8 @@ class WebWorker extends CronBaseWorker
 {
     public $name = 'WebWorker';
     public $master = 1;
-    public $count = 1;
+    // 避免阻塞，设成3个
+    public $count = 3;
     public $oparr = ['list', 'stop', 'status'];
     public $config = [];
     public $client = [];
@@ -95,8 +96,6 @@ class WebWorker extends CronBaseWorker
         return $result;
     }
 
-    
-
     /**
      * 处理web请求
      * list 列出配置
@@ -105,7 +104,7 @@ class WebWorker extends CronBaseWorker
      * stop 关闭正在运行
      */
     public function onMessage($connection, $request)
-    {
+    {   
         $op = $request->get('op', '');
         $getsecret = $request->get('secret', '');
         $this->LogEchoWrite("操作：".$op);
