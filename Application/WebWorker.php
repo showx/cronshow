@@ -12,12 +12,13 @@ class WebWorker extends CronBaseWorker
     public $master = 1;
     // 避免阻塞，设成3个
     public $count = 3;
-    public $oparr = ['list', 'stop', 'status'];
+    // 列表，结束任务，开始任务,状态
+    public $oparr = ['list', 'stop', 'start', 'status'];
     public $config = [];
     public $client = [];
     public $ip = "0.0.0.0";
     // 主服务器使用8080,其它可以使用指定的
-    public $port = "8090";
+    public $port = "8089";
     
     public function __construct()
     {
@@ -105,6 +106,15 @@ class WebWorker extends CronBaseWorker
      */
     public function onMessage($connection, $request)
     {   
+        //  这里先经过账号权限的验证
+
+        // 这里要引入登录验证的文件
+        $acl = include __DIR__.'/Config/Acl.php';
+        if($acl != true)
+        {
+            $connection->send("没有查看权限");
+        }
+
         $op = $request->get('op', '');
         $getsecret = $request->get('secret', '');
         $this->LogEchoWrite("操作：".$op);

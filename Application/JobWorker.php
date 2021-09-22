@@ -10,11 +10,21 @@ class JobWorker extends CronBaseWorker
 {
     public $name = 'JobWorker_cronTaskWorker';
     public $count = 30;
+    public $config = [];
     public $timeout = 2;
+    public $maxruntime = 7200;
 
     public function __construct()
     {
         parent::__construct("Text://0.0.0.0:12345");
+        if(file_exists(__DIR__.'/Config/Cron.php'))
+        {
+            $this->config = include __DIR__.'/Config/Cron.php';
+        }else{
+            $this->config = ['timeout' => 2, 'maxruntime' => 7200];
+        }
+        $this->timeout = $this->config['timeout'];
+        $this->maxruntime = $this->config['maxruntime'];
     }
 
     public function onMessage($connection, $task_data)
@@ -57,8 +67,16 @@ class JobWorker extends CronBaseWorker
                     // $this->LogEchoWrite('[warning]【'.$command_before.'】-->unlink running');
                     continue;
                 }else{
-                    // 因为还在锁定中，所以一定要写日志，有可能死锁的状态
-                    $this->LogEchoWrite('[warning]【'.$command.'】-->already running');
+                    clearstatcache();
+                    $pidstat = lstat($pid_file);
+                    $maxlongtime = $pidstat['ctime'] + $this->maxruntime;
+                    // 因为还在锁定中，所以一定要写日志，有可能死锁的状态 ,所以要有时间的判断
+                    if($pidstat['ctime'] > $maxlongtime)
+                    {
+                        $this->LogEchoWrite('[error]【'.$command.'】-->maxtime!!');
+                    }else{
+                        $this->LogEchoWrite('[warning]【'.$command.'】-->already running');
+                    }
                     continue;
                 }
             }

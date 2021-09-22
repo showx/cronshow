@@ -67,12 +67,10 @@ Class Web
                     {
                         foreach($day as $dd)
                         {
-                            $data = self::mdfile($dd);
-                            $txtArr[] = $key."^".$daytime."|".$dd."|".$data['status'];
+                            $txtArr[] = self::statusResult($dd, $daytime, $key);
                         }
                     }else{
-                        $data = self::mdfile($day);
-                        $txtArr[] = $key."^".$daytime."|".$day."|".$data['status'];
+                        $txtArr[] = self::statusResult($day, $daytime, $key);
                     }
                 }
             }
@@ -83,14 +81,28 @@ Class Web
     }
 
     /**
+     * 状态action的结果集
+     *
+     * @param string $command
+     * @param string $daytime
+     * @param [type] $key
+     */
+    public static function statusResult($command = '', $daytime = '', $key)
+    {
+        $mname = self::mname($command);
+        $data = self::mdfile($command);
+        $result = $key."^".$daytime."|".$command."|".$data['status']."|".$mname;
+        return $result;
+    }
+
+    /**
      * 查看命令状态
      *
      * @param string $command
      */
     public static function mdfile($command = '')
     {
-        $command = addslashes($command);
-        $filename = md5(trim($command));
+        $filename = self::mname($command);
         $lock_file = self::$Lock_Dir.'/'.$filename.".php";
         $status_file = self::$Status_Dir.'/'.$filename.".txt";
         $result = [];
@@ -101,6 +113,19 @@ Class Web
             $result['status'] = '';
         }
         return $result;
+    }
+
+    /**
+     * 加密后的名字(用来区分唯一command)
+     * 
+     * bname
+     * @param string $command
+     */
+    public static function mname($command = '')
+    {
+        $command = addslashes($command);
+        $filename = md5(trim($command));
+        return $filename;
     }
 
     /**
@@ -162,7 +187,6 @@ Class Web
      *
      * @param [type] $url
      * @param integer $timeout
-     * @return void
      */
     public static function httpget($url, $timeout = 2)
     {
