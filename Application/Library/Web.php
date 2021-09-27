@@ -44,6 +44,24 @@ Class Web
         return $data;
     }
 
+    public static function status($pid){
+        $command = 'ps -p '.$pid;
+        exec($command,$op);
+        if (!isset($op[1]))return false;
+        else return true;
+    }
+
+    public static function start(){
+        
+    }
+
+    public static function stop($pid){
+        $command = 'kill '.$pid;
+        exec($command);
+        if (self::status($pid) == false)return true;
+        else return false;
+    }
+
     /**
      * 命令状态
      *
@@ -75,6 +93,7 @@ Class Web
                 }
             }
         }
+        
         $data = json_encode($txtArr);
         return $data;
 
@@ -87,7 +106,7 @@ Class Web
      * @param string $daytime
      * @param [type] $key
      */
-    public static function statusResult($command = '', $daytime = '', $key)
+    public static function statusResult($command = '', $daytime = '', $key = '')
     {
         $mname = self::mname($command);
         $data = self::mdfile($command);

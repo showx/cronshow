@@ -21,9 +21,19 @@ class CronBaseWorker extends Worker
     public $Log_Dir = __DIR__.'/Log';
     public $Lock_Dir = __DIR__.'/Lock';
     public $Status_Dir = __DIR__.'/Status';
+    public $timeout = 2;
+    public $maxruntime = 7200;
 
     public function __construct($socket_name = '', $context_option = array())
     {
+        if(file_exists(__DIR__.'/Config/Cron.php'))
+        {
+            $this->config = include __DIR__.'/Config/Cron.php';
+        }else{
+            $this->config = ['timeout' => 2, 'maxruntime' => 7200];
+        }
+        $this->timeout = $this->config['timeout'];
+        $this->maxruntime = $this->config['maxruntime'];
         parent::__construct($socket_name, $context_option);
     }
 

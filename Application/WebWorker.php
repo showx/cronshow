@@ -114,7 +114,6 @@ class WebWorker extends CronBaseWorker
         {
             $connection->send("没有查看权限");
         }
-
         $op = $request->get('op', '');
         $getsecret = $request->get('secret', '');
         $this->LogEchoWrite("操作：".$op);

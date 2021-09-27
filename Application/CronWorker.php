@@ -8,6 +8,7 @@ namespace cronshow;
 
 use Workerman\Lib\Timer;
 use Workerman\Connection\AsyncTcpConnection;
+use Workerman\Connection\TcpConnection;
 
 class CronWorker extends CronBaseWorker
 {
@@ -35,42 +36,66 @@ class CronWorker extends CronBaseWorker
         $runFile = $Config->get();
         $this->LogEchoWrite("-----------------------------------------------");
         $this->LogEchoWrite('[alert]cron_start_time'.date('Ymd | H:i:s',time()));
+        $asyncCallback = [];
+        if(empty($runFile))
+        {
+            return '';
+        }
         foreach($runFile as $command)
         {
             $command_before = $command;
 	        $command = addslashes($command);
-            $contents = "<?php \$tmp=exec('{$command}');echo \$tmp;?>";
             $filename = md5($command);
-            $pid_file = $this->Lock_Dir.'/'.$filename.".php";
+            $lock_file = $this->Lock_Dir.'/'.$filename.".php";
+            $timeoutfile = __DIR__.'/Log/timeoutrun.txt';
+            $statusfile = $this->Status_Dir.'/'.$filename.".txt";
+            $contents=<<<EOF
+<?php
+\$runstarttime = microtime(true);
+// 这里阻塞一下没问题的
+\$tmp = exec("{$command}", \$output);
+\$runendtime = microtime(true);
+// 计算出运行时间
+\$runningtime = \$runendtime - \$runstarttime;
+if(\$runningtime >= {$this->timeout})
+{
+    file_put_contents("{$timeoutfile}","very late:{$command}\r\n",FILE_APPEND|LOCK_EX);
+}
+if(\$tmp)
+{
+    \$data = json_encode(['startmicrotime' => \$runstarttime, 'endmicrotime' => \$runendtime ,'time' => time(), 'runtime'=>\$runningtime,'output' => \$output]);
+    // 这里要记录一下状态的,每次更新最后状态
+    file_put_contents("{$statusfile}",\$data);
+}
+?>
+EOF;
             clearstatcache();
             // 仅当pid文件不存在的时候重新写
             // 根据命令生成log
-            if(!file_exists($pid_file))
+            if(!file_exists($lock_file))
             {
                 // 没有文件先生成文件先
                 $this->LogEchoWrite('[info]【'.$command_before.'】-->start');
-                file_put_contents($pid_file, $contents);
-                // 这里会阻塞一下, 避免阻塞的处理 , 这里变成异步之后，要判断有没删除文件
-                // $tmp = exec("php $pid_file >/dev/null  &",$output);
+                file_put_contents($lock_file, $contents);
+            }
+            if($command)
+            {
+                // 队列运行和同步运行
+                $task_connection = new AsyncTcpConnection('Text://127.0.0.1:12345');
+                // $task_connection = new TcpConnection('Text://127.0.0.1:12345');
+                // 发送数据
+                $task_connection->send($command);
+                // 异步获得结果
+                $task_connection->onMessage = function($task_connection, $task_result)
+                {
+                    $this->LogEchoWrite($task_result);
+                    // 获得结果后记得关闭异步连接
+                    $task_connection->close();
+                };
+                // 执行异步连接
+                $task_connection->connect();
             }
         }
-        $task_connection = new AsyncTcpConnection('Text://127.0.0.1:12345');
-        // 任务及参数数据
-        $task_data = array(
-            'runfile' => $runFile,
-            'time' => time(),
-        );
-        // 发送数据
-        $task_connection->send(json_encode($task_data));
-        // 异步获得结果
-        $task_connection->onMessage = function($task_connection, $task_result)
-        {
-            $this->LogEchoWrite($task_result);
-            // 获得结果后记得关闭异步连接
-            $task_connection->close();
-        };
-        // 执行异步连接
-        $task_connection->connect();
         $this->LogEchoWrite('[alert]cron_end_time'.date('Ymd | H:i:s',time()));
     }
 
