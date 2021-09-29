@@ -11,4 +11,5 @@ return [
         '172.17.0.5:8089'
     ],
     "key" => "test",
+    "login_url" => "http://job.x7t.cn",
 ];

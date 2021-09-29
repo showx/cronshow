@@ -28,9 +28,9 @@ class WebWorker extends CronBaseWorker
         {
             $this->master = 1;
             $this->client = $this->config['client'];
-            echo 'server'.PHP_EOL;
+            echo 'cronjob_server'.PHP_EOL;
         }else{
-            echo 'client'.PHP_EOL;
+            echo 'cronjob_client'.PHP_EOL;
         }
         $this->ip = $this->config['ip'] ?? $this->ip;
         $this->port = $this->config['port'] ?? $this->port;
@@ -51,53 +51,6 @@ class WebWorker extends CronBaseWorker
     }
 
     /**
-     * agent的处理
-     *
-     * @param string $op
-     * @return void
-     */
-    public function agent($op = 'list')
-    {
-        $secret = md5($this->config['key'].date("Ymd"));
-        $txtArr = [];
-        $result = '';
-        foreach($this->client as $host)
-        {
-            $txtArr[] = "client:".$host;
-            switch($op)
-            {
-                case 'list':
-                    $tmp = web::agentOp($host, "cl_list", $secret);
-                    if($tmp)
-                    {
-                        $txtArr = web::listData($tmp, $txtArr);
-                    }
-                    break;
-                case 'status':
-                    $tmp = web::agentOp($host, "cl_status", $secret);
-                    if($tmp)
-                    {
-                        $txtArr = web::statusData($tmp, $txtArr);
-                    }
-                    break;
-                default:
-                    $txtArr[] = "没数据";
-                    break;
-            }
-        }
-        switch($op)
-        {
-            case 'list':
-                $result = webview::listTable($txtArr);
-                break;
-            case 'status':
-                $result = webview::statusTable($txtArr);
-                break;
-        }
-        return $result;
-    }
-
-    /**
      * 处理web请求
      * list 列出配置
      * listrun 列出正在运行
@@ -106,54 +59,29 @@ class WebWorker extends CronBaseWorker
      */
     public function onMessage($connection, $request)
     {   
-        //  这里先经过账号权限的验证
-
-        // 这里要引入登录验证的文件
-        $acl = include __DIR__.'/Config/Acl.php';
-        if($acl != true)
-        {
-            $connection->send("没有查看权限");
-        }
         $op = $request->get('op', '');
-        $getsecret = $request->get('secret', '');
         $this->LogEchoWrite("操作：".$op);
-        // 客户端接收的处理
-        if(substr($op, 0, 3) == 'cl_')
+        $data = explode("_", $op);
+        if(count($data) != 2)
         {
-            // 只提供信息返回
-            $secret = md5($this->config['key'].date("Ymd"));
-            if($getsecret == $secret)
-            {
-                switch($op)
-                {
-                    case 'cl_list':
-                        $data = web::clientList();
-                        $sendstatus = $connection->send($data);
-                        break;
-                    case 'cl_status':
-                        $data = web::clientStatus();
-                        $sendstatus = $connection->send($data);
-                        break;
-                }
-                return true;
-            }else{
-                echo 'error'.PHP_EOL;
+            $connection->send("错误操作");
+            return false;
+        }
+        $ct = $data[0];
+        $ac = $data[1];
+        $httpfile = $this->Http_Dir.'/'.$ct.'.php';
+        if(file_exists($httpfile))
+        {
+            include_once($httpfile);
+            $cls = 'Application\\Http\\'. $ct;
+            if(!class_exists($cls)){
+                $connection->send("不存在该操作");
                 return false;
             }
+            $control = new $cls;
+            $response = call_user_func_array(array($control, $ac), [$connection, $request]);
+            $connection->send($response);
         }
-        if($this->master == 1)
-        {
-            if(!in_array($op, $this->oparr))
-            {
-                $connection->send("不存在的action!");
-            }else{
-                // 列出更agent的
-                $result = $this->agent($op);
-                $connection->send($result);
-            }
-        }
-        
-        
     }
 
 }

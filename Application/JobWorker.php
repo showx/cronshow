@@ -5,6 +5,9 @@
  */
 
 namespace cronshow;
+use \Application\Library\Cron as cron;
+use \Application\Library\Web as web;
+use \Application\Library\WebView as webview;
 
 class JobWorker extends CronBaseWorker
 {
@@ -23,40 +26,40 @@ class JobWorker extends CronBaseWorker
         {
             // 这里是按顺序的
             $command = $task_data;
-            $command = addslashes($command);
-            $filename = md5($command);
+            $filename = cron::hexname($command);
             $lock_file = $this->Lock_Dir.'/'.$filename.".php";
             $pid_file = $this->Lock_Dir.'/pid_'.$filename.".txt";
-            // 这里要判断运行的进程有没结束
-            $t2 = exec("ps -aux|grep {$lock_file}|grep -v 'grep' ");
-            if(empty($t2)) //或者判断lock是否在运行
+            $startpid = cron::start($filename);
+            if($startpid == 0)
             {
-                exec("nohup php $lock_file > /dev/null 2>&1 & echo $!", $output);
-                $lockpid = (int)$output[0]."|".time();
-                file_put_contents($pid_file, $lockpid);
-                // $this->LogEchoWrite('[warning]【'.$command_before.'】-->unlink running');
-            }else{
-                clearstatcache();
+                // clearstatcache();
                 // $pidstat = stat($lock_file);
                 // $maxlongtime = $pidstat['atime'] + $this->maxruntime;
-                $content = file_get_contents($pid_file);
-                $data = explode("|", $content);
-                $filetime = $data[1];
-                $pid = $data[0];
-                $maxlongtime = $filetime + $this->maxruntime;
-                $time = time();
-                // echo $command."|".$pidstat['atime']."|"."maxlongtime:".$maxlongtime."|{$time}\n";
-                // 因为还在锁定中，所以一定要写日志，有可能死锁的状态 ,所以要有时间的判断
-                if($time > $maxlongtime)
+                if(file_exists($pid_file))
                 {
-                    $this->LogEchoWrite('[error]【'.$command.'】-->maxtime!!');
-                    // 关闭进程
-                    $command = 'kill '.$pid;
-                    exec($command);
-                    $this->LogEchoWrite('[warning]【'.$command.'_pid:'.$pid.'】-->close process');
+                    $content = file_get_contents($pid_file);
+                    $data = explode("|", $content);
+                    $filetime = $data[1];
+                    $pid = $data[0];
+                    $maxlongtime = $filetime + $this->maxruntime;
+                    $time = time();
+                    // echo $command."|".$pidstat['atime']."|"."maxlongtime:".$maxlongtime."|{$time}\n";
+                    // 因为还在锁定中，所以一定要写日志，有可能死锁的状态 ,所以要有时间的判断
+                    if($time > $maxlongtime)
+                    {
+                        $this->LogEchoWrite('[error]【'.$command.'】-->maxtime!!');
+                        // 关闭进程
+                        $stopstatus = cron::stop($pid);
+                        $this->LogEchoWrite('[warning]【'.$command.'_pid:'.$pid."status:".$stopstatus.'】-->close process');
+                    }else{
+                        $this->LogEchoWrite('[warning]【'.$command.'】-->already running');
+                    }
                 }else{
-                    $this->LogEchoWrite('[warning]【'.$command.'】-->already running');
+                    $this->LogEchoWrite('[error]'.$command.'_pid文件不存在');
                 }
+                
+            }else{
+                $this->LogEchoWrite('[info]【'.$command.'】-->运行的pid是'.$startpid);
             }
             $task_result = $task_data.'|task end';
         }

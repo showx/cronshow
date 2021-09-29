@@ -21,6 +21,7 @@ class CronBaseWorker extends Worker
     public $Log_Dir = __DIR__.'/Log';
     public $Lock_Dir = __DIR__.'/Lock';
     public $Status_Dir = __DIR__.'/Status';
+    public $Http_Dir = __DIR__.'/Http';
     public $timeout = 2;
     public $maxruntime = 7200;
 
@@ -34,6 +35,7 @@ class CronBaseWorker extends Worker
         }
         $this->timeout = $this->config['timeout'];
         $this->maxruntime = $this->config['maxruntime'];
+        $this->execfile = $this->config['php_bin_path'];
         parent::__construct($socket_name, $context_option);
     }
 

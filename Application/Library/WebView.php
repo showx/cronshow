@@ -41,17 +41,32 @@ Class WebView
     public static function statusTable($data)
     {
         $table = "<table border='1'>";
-        $table .= "<tr><th>时间</th><th>命令</th><th>状态</th><th>操作</th></tr>";
+        $table .= "<tr>
+        <th>时间</th>
+        <th>命令</th>
+        <th>状态</th>
+        <th>结果</th>
+        <th>操作</th>
+        </tr>";
         $server = '';
         foreach($data as $row)
         {
             $rowtmp = explode("|", $row);
             if(count($rowtmp) > 1)
             {
-                $table .= "<tr><td>{$rowtmp[0]}</td><td>{$rowtmp[1]}</td><td>{$rowtmp[2]}</td><td><a href='/?op=start&agent={$server}&id={$rowtmp[3]}'>开始运行</a> | <a href='/?op=stop&agent={$server}&id={$rowtmp[3]}'>停止</a></td></tr>";
+                $table .= "<tr>
+                <td>{$rowtmp[0]}</td>
+                <td>{$rowtmp[1]}</td>
+                <td>{$rowtmp[2]}</td>
+                <td>{$rowtmp[4]}</td>
+                <td>
+                <a href='/?op=master_start&agent={$server}&id={$rowtmp[3]}'>运行</a> | 
+                <a href='/?op=master_stop&agent={$server}&id={$rowtmp[3]}'>停止</a>
+                </td>
+                </tr>";
             }else{
                 $server = $row;
-                $table .= "<tr><td colspan='4'>{$row}</td></tr>";
+                $table .= "<tr><td colspan='5'>{$row}</td></tr>";
             }
         }
         $table .= "</table>";

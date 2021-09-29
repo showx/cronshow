@@ -1,6 +1,6 @@
 <?php
 /**
- * Config配置获取
+ * Web模块
  * Author:show
  */
 
@@ -8,18 +8,17 @@ namespace Application\Library;
 
 Class Web
 {
-    public static $Status_Dir;
-    public static $Lock_Dir;
+    public static $Status_Dir = CRONPATH.'/Application/Status';
+    public static $Lock_Dir = CRONPATH.'/Application/Lock';
     /**
      * 列出文件逻辑
      * @todo 考虑读取超时的问题，client一般填内网ip
      * 
      */
-    public static function agentOp($url, $op = "cl_list", $secret = '')
+    public static function curlData($url, $op = "client_list", $secret = '', $param = '')
     {
-        $gurl = "http://{$url}/?op={$op}&secret={$secret}";
+        $gurl = "http://{$url}/?op={$op}&secret={$secret}{$param}";
         echo $gurl.PHP_EOL;
-        // 这里地址不对容易死循环
         $tmp = web::httpget($gurl);
         if($tmp)
         {
@@ -31,43 +30,11 @@ Class Web
     }
 
     /**
-     * 返回cronjob列表
-     * json格式
-     */
-    public static function clientList()
-    {
-        $dayArr = include CRONPATH.'/Application/Config/Day.php';
-        $minArr = include CRONPATH.'/Application/Config/Minute.php';
-        $secArr = include CRONPATH.'/Application/Config/Second.php';
-        $data = ['day' => $dayArr, 'min' => $minArr, 'sec' => $secArr];
-        $data = json_encode($data);
-        return $data;
-    }
-
-    public static function status($pid){
-        $command = 'ps -p '.$pid;
-        exec($command,$op);
-        if (!isset($op[1]))return false;
-        else return true;
-    }
-
-    public static function start(){
-        
-    }
-
-    public static function stop($pid){
-        $command = 'kill '.$pid;
-        exec($command);
-        if (self::status($pid) == false)return true;
-        else return false;
-    }
-
-    /**
      * 命令状态
      *
      * @return void
      */
-    public static function clientStatus()
+    public static function clientList()
     {
         $dayArr = include CRONPATH.'/Application/Config/Day.php';
         $minArr = include CRONPATH.'/Application/Config/Minute.php';
@@ -108,9 +75,9 @@ Class Web
      */
     public static function statusResult($command = '', $daytime = '', $key = '')
     {
-        $mname = self::mname($command);
+        $hexname = Cron::hexname($command);
         $data = self::mdfile($command);
-        $result = $key."^".$daytime."|".$command."|".$data['status']."|".$mname;
+        $result = $key."^".$daytime."|".$command."|".$data['status']."|".$hexname."|".$data['output'];
         return $result;
     }
 
@@ -121,31 +88,25 @@ Class Web
      */
     public static function mdfile($command = '')
     {
-        $filename = self::mname($command);
-        $lock_file = self::$Lock_Dir.'/'.$filename.".php";
+        $filename = Cron::hexname($command);
         $status_file = self::$Status_Dir.'/'.$filename.".txt";
         $result = [];
         if(file_exists($status_file))
         {
-            $result['status'] = file_get_contents($status_file);
+            // 这里解决一下再显示
+            $status_content = file_get_contents($status_file);
+            $data = json_decode($status_content, true);
+            $status_content = "开始运行时间:".date("Y-m-d H:i:s", $data['startmicrotime'])." 结束运行时间:".date("Y-m-d H:i:s", $data['endmicrotime'])."运行时长:".$data['runtime'];
+            $result['status'] = $status_content;
+            $result['output'] = json_encode($data['output']);
         }else{
             $result['status'] = '';
+            $result['output'] = '';
         }
         return $result;
     }
 
-    /**
-     * 加密后的名字(用来区分唯一command)
-     * 
-     * bname
-     * @param string $command
-     */
-    public static function mname($command = '')
-    {
-        $command = addslashes($command);
-        $filename = md5(trim($command));
-        return $filename;
-    }
+    
 
     /**
      * 整理返回数组
@@ -154,46 +115,11 @@ Class Web
      * @param array $txtArr
      * @return void
      */
-    public static function listData($tmp, $txtArr = [])
+    public static function txtData($tmp, $txtArr = [])
     {
         if($tmp)
         {
-            foreach(['day', 'min', 'sec'] as $key)
-            {
-                if(isset($tmp[$key]))
-                {
-                    foreach($tmp[$key] as $daytime => $day)
-                    {
-                        if(is_array($day))
-                        {
-                            foreach($day as $dd)
-                            {
-                                $txtArr[] = $key."^".$daytime."|".$dd;
-                            }
-                        }else{
-                            $txtArr[] = $key."^".$daytime."|".$day;
-                        }
-                    }
-                }
-            }
-        }
-        return $txtArr;
-    }
-
-
-
-    /**
-     * 整理返回数组
-     *
-     * @param [type] $tmp
-     * @param array $txtArr
-     * @return void
-     */
-    public static function statusData($tmp, $txtArr = [])
-    {
-        if($tmp)
-        {
-            foreach($tmp as $key => $val)
+            foreach($tmp as $val)
             {
                 $txtArr[] = $val;
             }
