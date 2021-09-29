@@ -55,6 +55,7 @@ Class Cron
         $lock_file = self::$Lock_Dir.'/'.$filename.".php";
         $pid_file = self::$Lock_Dir.'/pid_'.$filename.".txt";
         $timeoutfile = CRONPATH.'/Application/Log/timeoutrun.txt';
+        $runerror = CRONPATH.'/Application/Log/runerror.txt';
         $statusfile = self::$Status_Dir.'/'.$filename.".txt";
         $contents1=<<<EOF
 <?php
@@ -92,30 +93,25 @@ if (\$pid == -1) {
         posix_kill(\$fork_pid, \\SIGKILL);
     }, false);
     pcntl_wait(\$status);
+    \$runendtime = microtime(true);
+    // 计算出运行时间
+    \$runningtime = \$runendtime - \$runstarttime;
+    if(\$runningtime >= 2)
+    {
+        file_put_contents("{$timeoutfile}", "very late:php {$command}", FILE_APPEND|LOCK_EX);
+    }
+    \$data = json_encode(['startmicrotime' => \$runstarttime, 'endmicrotime' => \$runendtime ,'time' => time(), 'runtime' => \$runningtime,'output' => '']);
+    // 这里要记录一下状态的,每次更新最后状态
+    file_put_contents("{$statusfile}", \$data);
+    unlink("{$lock_file}");
+    unlink("{$pid_file}");
 } else {
     try{
         \$tmp = pcntl_exec("{$binfile}", {$commandstr});
     }catch(\Exception \$e){
         \$tmp = "cron_exec_error".\$e->getMessage();
     }finally{
-        \$runendtime = microtime(true);
-        // 计算出运行时间
-        \$runningtime = \$runendtime - \$runstarttime;
-        if(\$runningtime >= 2)
-        {
-            file_put_contents("{$timeoutfile}", "very late:php {$command}", FILE_APPEND|LOCK_EX);
-        }
-        if(!\$tmp)
-        {
-            \$output = "return_fasle!!!";
-        }
-        {
-            \$data = json_encode(['startmicrotime' => \$runstarttime, 'endmicrotime' => \$runendtime ,'time' => time(), 'runtime' => \$runningtime,'output' => \$output]);
-            // 这里要记录一下状态的,每次更新最后状态
-            file_put_contents("{$statusfile}", \$data);
-            unlink("{$lock_file}");
-            unlink("{$pid_file}");
-        }
+        file_put_contents("{$runerror}", "error: {$command}", FILE_APPEND|LOCK_EX);
     }
 }
 ?>
@@ -154,6 +150,7 @@ EOF;
     public static function start($filename = ''){
         $lock_file = self::$Lock_Dir.'/'.$filename.".php";
         $pid_file = self::$Lock_Dir.'/pid_'.$filename.".txt";
+        $result_file = self::$Status_Dir.'/result_'.$filename.".txt";
         $t2 = exec("ps -aux|grep {$filename}|grep -v 'grep' ");
         // var_dump($t2);
         // echo $lock_file."\n";
@@ -162,7 +159,7 @@ EOF;
             if(file_exists($lock_file))
             {
                 echo $lock_file."开始启动\n";
-                exec("nohup php $lock_file > /dev/null 2>&1 & echo $!", $output);
+                exec("nohup php $lock_file > {$result_file} 2>&1 & echo $!", $output);
                 $lockpid = (int)$output[0]."|".time();
                 file_put_contents($pid_file, $lockpid);
                 return $output[0];

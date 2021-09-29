@@ -43,7 +43,7 @@ Class Web
         $txtArr = [];
         foreach(['day', 'min', 'sec'] as $key)
         {
-            echo $key.PHP_EOL;
+            // echo $key.PHP_EOL;
             if(isset($tmp[$key]))
             {
                 foreach($tmp[$key] as $daytime => $day)
@@ -90,15 +90,17 @@ Class Web
     {
         $filename = Cron::hexname($command);
         $status_file = self::$Status_Dir.'/'.$filename.".txt";
+        $result_file = self::$Status_Dir.'/result_'.$filename.".txt";
         $result = [];
         if(file_exists($status_file))
         {
+            $result_content = file_get_contents($result_file);
             // 这里解决一下再显示
             $status_content = file_get_contents($status_file);
             $data = json_decode($status_content, true);
             $status_content = "开始运行时间:".date("Y-m-d H:i:s", $data['startmicrotime'])." 结束运行时间:".date("Y-m-d H:i:s", $data['endmicrotime'])."运行时长:".$data['runtime'];
             $result['status'] = $status_content;
-            $result['output'] = json_encode($data['output']);
+            $result['output'] = $result_content;
         }else{
             $result['status'] = '';
             $result['output'] = '';
