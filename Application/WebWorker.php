@@ -77,7 +77,16 @@ class WebWorker extends CronBaseWorker
                 return false;
             }
             $control = new $cls;
-            $response = call_user_func_array(array($control, $ac), [$connection, $request]);
+            if(!method_exists($control, $ac)){
+                $connection->send("不存在该操作!");
+                return false;
+            }
+            try{
+                $response = call_user_func_array(array($control, $ac), [$connection, $request]);
+            }catch(\Exception $e){
+                $connection->send("action error!");
+                return false;
+            }
             $connection->send($response);
         }
     }
