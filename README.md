@@ -1,5 +1,5 @@
 # cronshow
-定时任务控制台,Linux 定时任务控制，比linux自带的cronjob增加秒级功能。
+基于workerman做的定时任务控制台,Linux 定时任务控制，比linux自带的cronjob增加秒级功能。
 
 # 运行环境
 1. php >= 7.0
@@ -8,6 +8,12 @@
 3. 预留7788与8877和8089端口
 
 # 使用教程
+## 安装
+下载完项目之后，在根composer install一下,主要加载workerman的库
+`
+composer install
+`
+
 ## 配置
 配置要启动的job
 Application/config下的配置文件
@@ -45,7 +51,7 @@ return [
 ];
 ```
 
-### web管理的配置
+## web管理的配置
 ```PHP
 // Web.php web管理
 // ip:8089, 也可以使用nginx反向代理一下
@@ -66,8 +72,17 @@ return [
     //  是否自动跳去登录
     "autoredirectloginurl" => false,
 ];
+## 权限逻辑文件
+// Config\Acl.php 这里加上登录逻辑，默认return true即校验成功
+
 ```
 运行web界面，可以启动或停止相关进程。
+### 查看web管理
+`
+http://127.0.0.1:8089?op=master_list
+`
+效果如下:
+![](file:///doc.jpg)
 
 # 命令相关
 ## 测试运行效果
