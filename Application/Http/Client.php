@@ -51,20 +51,24 @@ Class Client
         }
         $filename = $request->get("id", "");
         $pid_file = CRONPATH.'/Application/Lock/pid_'.$filename.".txt";
-        $content = file_get_contents($pid_file);
-        $data = explode("|", $content);
-        $filetime = $data[1];
-        $pid = $data[0];
         $status = false;
-        if($pid)
+        if(file_exists($pid_file))
         {
-            echo "进行stop\n";
-            $status = cron::stop($pid);
-            var_dump($status);
+            $content = file_get_contents($pid_file);
+            $data = explode("|", $content);
+            $filetime = $data[1];
+            $pid = $data[0];
+            
+            if($pid)
+            {
+                echo "进行stop\n";
+                $status = cron::stop($pid);
+                var_dump($status);
+            }
         }
-        $consolelog = "start_".$pid.".".$status;
-        echo $consolelog."\n";
-        $connection->send($consolelog);
+        $consolelog = "stop_".$pid.".".$status;
+        $senddata = json_encode(['id' => $filename, "console" => $consolelog, "status" => $status]);
+        $connection->send($senddata);
     }
 
     public function start($connection, $request)
@@ -81,8 +85,8 @@ Class Client
             $status = cron::start($filename);
         }
         $consolelog = "start_".$filename.".".$status;
-        echo $consolelog."\n";
-        $connection->send($consolelog);
+        $senddata = json_encode(['id' => $filename, "console" => $consolelog, "status" => $status]);
+        $connection->send($senddata);
     }
 
 }

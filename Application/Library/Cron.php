@@ -181,9 +181,10 @@ EOF;
         }
         // $command = 'kill -9 '.$pid;
         // exec($command);
-        posix_kill($pid, \SIGINT);
-        if (self::status($pid) == false)return true;
-        else return false;
+        $status = posix_kill($pid, \SIGINT);
+        return $status;
+        // if (self::status($pid) == false)return true;
+        // else return false;
     }
 
 }

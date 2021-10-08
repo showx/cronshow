@@ -12,9 +12,13 @@ Class Master
 {
     public $config;
     private $secret = '';
+    public $login_url;
+    public $autoredirectloginurl = false;
     public function __construct()
     {
         $this->config = include CRONPATH.'/Application/Config/Web.php';
+        $this->login_url = $this->config['login_url'] ?? '';
+        $this->autoredirectloginurl = $this->config['autoredirectloginurl'];
         if(!empty($this->config['client']))
         {
             $this->master = 1;
@@ -22,7 +26,14 @@ Class Master
         }
     }
 
-    private function acl($request)
+    /**
+     * 权限判断
+     *
+     * @param [type] $connection
+     * @param [type] $request
+     * @return void
+     */
+    private function acl($connection, $request)
     {
         $this->secret = md5($this->config['key'].date("Ymd"));
         $aclfile = CRONPATH.'/Application/Config/Acl.php';
@@ -32,12 +43,22 @@ Class Master
         }else{
             return true;
         }
+        if(!$acl)
+        {
+            if($this->autoredirectloginurl)
+            {
+                $response = new \Workerman\Protocols\Http\Response(302, [
+                    'Location' => $this->login_url,
+                ], '');
+                $connection->send($response);
+            }
+        }
         return $acl;
     }
 
     public function list($connection, $request)
     {
-        if(!$this->acl($request))
+        if(!$this->acl($connection, $request))
         {
             $connection->send("acl error!");
             return false;
@@ -65,7 +86,7 @@ Class Master
      */
     public function stop($connection, $request)
     {
-        if(!$this->acl($request))
+        if(!$this->acl($connection, $request))
         {
             $connection->send("acl error!");
             return false;
@@ -74,7 +95,8 @@ Class Master
         $id = $request->get("id", "");
         $param = "&id={$id}";
         $clientdata = web::curlData($host, "client_stop", $this->secret, $param);
-        $connection->send($clientdata);
+        var_dump($clientdata);
+        $connection->send("状态".$clientdata['status']);
     }
 
     /**
@@ -86,7 +108,7 @@ Class Master
      */
     public function start($connection, $request)
     {
-        if(!$this->acl($request))
+        if(!$this->acl($connection, $request))
         {
             $connection->send("acl error!");
             return false;
@@ -95,7 +117,7 @@ Class Master
         $id = $request->get("id", "");
         $param = "&id={$id}";
         $clientdata = web::curlData($host, "client_start", $this->secret, $param);
-        $connection->send($clientdata);
+        $connection->send("状态".$clientdata['status']);
     }
 
 }
