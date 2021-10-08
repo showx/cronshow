@@ -27,9 +27,9 @@ class JobWorker extends CronBaseWorker
             // 这里是按顺序的
             $command = $task_data;
             $filename = cron::hexname($command);
-            $lock_file = $this->Lock_Dir.'/'.$filename.".php";
             $pid_file = $this->Lock_Dir.'/pid_'.$filename.".txt";
-            $startpid = cron::start($filename);
+            $sync = Cron::issync($command);
+            $startpid = cron::start($filename, $sync);
             if($startpid == 0)
             {
                 // clearstatcache();
@@ -55,9 +55,12 @@ class JobWorker extends CronBaseWorker
                         $this->LogEchoWrite('[warning]【'.$command.'】-->already running');
                     }
                 }else{
-                    $this->LogEchoWrite('[error]'.$command.'_pid文件不存在');
+                    $this->LogEchoWrite('[error]'.$command.'-->pid文件不存在');
                 }
                 
+            }elseif($startpid == -123)
+            {
+                $this->LogEchoWrite('[info]'.$command.'-->同步进程运行结束');
             }else{
                 $this->LogEchoWrite('[info]【'.$command.'】-->运行的pid是'.$startpid);
             }

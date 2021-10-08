@@ -46,24 +46,38 @@ class CronWorker extends CronBaseWorker
         foreach($runFile as $command)
         {
             $command = trim($command);
+            $sync = Cron::issync($command);
             // 生成lock文件
             cron::locktpl($command, $this->timeout);
             if($command)
             {
-                // 队列运行和同步运行
-                $task_connection = new AsyncTcpConnection('Text://127.0.0.1:12345');
-                // $task_connection = new TcpConnection('Text://127.0.0.1:12345');
-                // 发送数据
-                $task_connection->send($command);
-                // 异步获得结果
-                $task_connection->onMessage = function($task_connection, $task_result)
+                // 这里要判断是否使用队列
+                if($sync)
                 {
-                    // $this->LogEchoWrite($task_result);
-                    // 获得结果后记得关闭异步连接
-                    $task_connection->close();
-                };
-                // 执行异步连接
-                $task_connection->connect();
+                    // echo "同步开始\n";
+                    $fp = $this->_socket = \stream_socket_client("tcp://127.0.0.1:12345", $errno, $errstr, 0);
+                    if (!$fp) {
+                        echo "!!!$errstr ($errno)<br />\n";
+                    } else {
+                        fwrite($fp, "{$command}\r\n");
+                        echo fgets($fp, 1024);
+                        fclose($fp);
+                    }
+                }else{
+                    // 队列运行和同步运行
+                    $task_connection = new AsyncTcpConnection('Text://127.0.0.1:12345');
+                    // 发送数据
+                    $task_connection->send($command);
+                    // 异步获得结果
+                    $task_connection->onMessage = function($task_connection, $task_result)
+                    {
+                        // $this->LogEchoWrite($task_result);
+                        // 获得结果后记得关闭异步连接
+                        $task_connection->close();
+                    };
+                    // 执行异步连接
+                    $task_connection->connect();
+                }
             }
         }
         // $this->LogEchoWrite('[alert]cron_end_time'.date('Ymd | H:i:s',time()));

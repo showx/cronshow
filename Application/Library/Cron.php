@@ -34,6 +34,11 @@ Class Cron
     public static function locktpl($command = '', $timeout = 2)
     {
         $filename = cron::hexname($command);
+        $sync = Cron::issync($command);
+        if($sync)
+        {
+            $command = substr($command, 0, -6);
+        }
         $commandArr = explode(" ", $command);
         $commandparam = [];
         foreach($commandArr as $param)
@@ -141,13 +146,24 @@ EOF;
         else return true;
     }
 
+    public static function issync($command)
+    {
+        $com = substr($command, -6, 6);
+        if($com == '^queue')
+        {
+            return true;
+        }else{
+            return false;
+        }
+    }
+
     /**
      * 开始任务
      *
      * @param string $filename
      * @return void
      */
-    public static function start($filename = ''){
+    public static function start($filename = '', $sync = false){
         $lock_file = self::$Lock_Dir.'/'.$filename.".php";
         $pid_file = self::$Lock_Dir.'/pid_'.$filename.".txt";
         $result_file = self::$Status_Dir.'/result_'.$filename.".txt";
@@ -159,10 +175,23 @@ EOF;
             if(file_exists($lock_file))
             {
                 echo $lock_file."开始启动\n";
-                exec("nohup php $lock_file > {$result_file} 2>&1 & echo $!", $output);
+                if(!$sync)
+                {
+                    // echo "异步模式\n";
+                    // 异步模式
+                    exec("nohup php $lock_file > {$result_file} 2>&1 & echo $!", $output);
+                }else{
+                    // echo "同步模式\n";
+                    // 同步模式
+                    exec("php $lock_file > {$result_file}");
+                    // exec("echo $!", $output);
+                    // 运行完之后进程已经结束了
+                    $output = [0 => -123];
+                }
                 $lockpid = (int)$output[0]."|".time();
                 file_put_contents($pid_file, $lockpid);
                 return $output[0];
+                return 0;
             }
         }
         return 0;
