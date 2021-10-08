@@ -14,8 +14,8 @@ Application/config下的配置文件
 代码里Config_example --> Config
 
 ### 按天运行
-`
-Day.php 每天某个时刻的运行
+```PHP
+// Day.php 每天某个时刻的运行
 // 例如每天10点15分运行一次
 return [
     "10:15" => [
@@ -23,19 +23,19 @@ return [
     "sh /test/test.sh"
     ]
 ];
-`
+```
 ### 按分钟运行
-`
-Minute.php 每隔多少分钟运行一次
+```PHP
+// Minute.php 每隔多少分钟运行一次
 // 每1钟01秒运行一次
 return [
     "1" => [
     "echo no"
     ]
 ];
-`
+```
 ### 按秒运行
-`
+```PHP
 Second.php 每隔多少秒运行一次
 // 每5秒运行一次
 return [
@@ -43,11 +43,12 @@ return [
     "echo no"
     ]
 ];
-`
+```
 
 ### web管理的配置
-`
-Web.php web管理
+```PHP
+// Web.php web管理
+// ip:8089, 也可以使用nginx反向代理一下
 return [
     //agent的描述
     "agent_id" => "test",
@@ -65,7 +66,7 @@ return [
     //  是否自动跳去登录
     "autoredirectloginurl" => false,
 ];
-`
+```
 运行web界面，可以启动或停止相关进程。
 
 # 命令相关
