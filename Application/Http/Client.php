@@ -42,6 +42,23 @@ Class Client
         $connection->send($data);
     }
 
+    public function result($connection, $request)
+    {
+        if(!$this->secret($request))
+        {
+            $connection->send("secret error!");
+            return false;
+        }
+        $filename = $request->get("id", "");
+        $result_file = CRONPATH.'/Application/Status/result_'.$filename.".txt";
+        $content = '';
+        if(file_exists($result_file))
+        {
+            $content = file_get_contents($result_file);
+        }
+        $connection->send($content);
+    }
+
     public function stop($connection, $request)
     {
         if(!$this->secret($request))

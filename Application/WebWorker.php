@@ -12,8 +12,6 @@ class WebWorker extends CronBaseWorker
     public $master = 1;
     // 避免阻塞，设成3个
     public $count = 3;
-    // 列表，结束任务，开始任务,状态
-    public $oparr = ['list', 'stop', 'start', 'status'];
     public $config = [];
     public $client = [];
     public $ip = "0.0.0.0";

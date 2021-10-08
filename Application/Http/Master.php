@@ -56,6 +56,13 @@ Class Master
         return $acl;
     }
 
+    /**
+     * 进程列表
+     *
+     * @param [type] $connection
+     * @param [type] $request
+     * @return void
+     */
     public function list($connection, $request)
     {
         if(!$this->acl($connection, $request))
@@ -75,6 +82,24 @@ Class Master
         }
         $result = webview::statusTable($txtArr);
         $connection->send($result);
+    }
+
+    /**
+     * 结果页
+     */
+    public function result($connection, $request)
+    {
+        if(!$this->acl($connection, $request))
+        {
+            $connection->send("acl error!");
+            return false;
+        }
+        $host = $request->get("agent", "");
+        $id = $request->get("id", "");
+        $param = "&id={$id}";
+        $clientdata = web::curlData($host, "client_result", $this->secret, $param);
+        var_dump($clientdata);
+        $connection->send("结果：".$clientdata);
     }
 
     /**

@@ -42,10 +42,11 @@ Class WebView
     {
         $table = "<table border='1'>";
         $table .= "<tr>
+        <th>ID</th>
         <th>时间</th>
         <th>命令</th>
         <th>状态</th>
-        <th>结果</th>
+        <th>简略结果</th>
         <th>操作</th>
         </tr>";
         $server = '';
@@ -54,19 +55,23 @@ Class WebView
             $rowtmp = explode("|", $row);
             if(count($rowtmp) > 1)
             {
+                $rowtmp[4] = substr($rowtmp[4], 0, 30)."..";
+                $id = md5($rowtmp[3]);
                 $table .= "<tr>
+                <td>{$id}</td>
                 <td>{$rowtmp[0]}</td>
                 <td>{$rowtmp[1]}</td>
                 <td>{$rowtmp[2]}</td>
                 <td>{$rowtmp[4]}</td>
                 <td>
+                <a href='/?op=master_result&agent={$server}&id={$rowtmp[3]}'>详细</a> | 
                 <a href='/?op=master_start&agent={$server}&id={$rowtmp[3]}'>运行</a> | 
                 <a href='/?op=master_stop&agent={$server}&id={$rowtmp[3]}'>停止</a>
                 </td>
                 </tr>";
             }else{
                 $server = $row;
-                $table .= "<tr><td colspan='5'>{$row}</td></tr>";
+                $table .= "<tr><td colspan='6'>{$row}</td></tr>";
             }
         }
         $table .= "</table>";

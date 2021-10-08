@@ -2,6 +2,12 @@
 /**
  * agent的配置
  */
+
+// 增加权限判断示便，例如判断cookie
+// echo CRONPATH;
+// $cookie = $request->cookie("token");
+// if($token != 'xx')
+// {
+//     return true;
+// }
 return true;
-// 这里进行逻辑判断
-// 一般判断cookie再返回即可

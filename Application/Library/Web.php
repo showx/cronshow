@@ -20,13 +20,12 @@ Class Web
         $gurl = "http://{$url}/?op={$op}&secret={$secret}{$param}";
         echo $gurl.PHP_EOL;
         $tmp = web::httpget($gurl);
-        if($tmp)
+        $isjson = is_null(json_decode($tmp));
+        if(!$isjson)
         {
             $tmp = json_decode($tmp, true);
-            return $tmp;
-        }else{
-            return false;
         }
+        return $tmp;
     }
 
     /**
