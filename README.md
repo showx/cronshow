@@ -82,7 +82,7 @@ return [
 http://127.0.0.1:8089?op=master_list
 `
 效果如下:
-![](file:///doc.jpg)
+![](doc.jpg)
 
 # 命令相关
 ## 测试运行效果
