@@ -9,10 +9,12 @@
 
 # 使用教程
 ## 安装
-下载完项目之后，在根composer install一下,主要加载workerman的库
+1. 下载完项目之后，在根composer install一下,主要加载workerman的库（phper都该懂composer ^_^）
 `
 composer install
 `
+
+1. 首次设置要把Application/Config_example 复制文件夹到Application/Config
 
 ## 配置
 配置要启动的job
@@ -81,7 +83,9 @@ return [
 `
 http://127.0.0.1:8089?op=master_list
 `
+
 效果如下:
+
 ![](doc.jpg)
 
 # 命令相关
@@ -96,4 +100,5 @@ php job.php start -d
 php job.php stop
 
 # todo
-1. 添加阶列运行（之前是队列运行，后改成并行，现在还需要根据配置来队列运行）
+1. 添加队列运行（之前是队列运行，后改成并行，现在还需要根据配置来队列运行）
+2. 增加钉钉通知
