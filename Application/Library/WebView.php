@@ -64,9 +64,9 @@ Class WebView
                 <td>{$rowtmp[2]}</td>
                 <td>{$rowtmp[4]}</td>
                 <td>
-                <a href='/?op=master_result&agent={$server}&id={$rowtmp[3]}'>详细</a> | 
-                <a href='/?op=master_start&agent={$server}&id={$rowtmp[3]}'>运行</a> | 
-                <a href='/?op=master_stop&agent={$server}&id={$rowtmp[3]}'>停止</a>
+                <a href='/?op=Master_result&agent={$server}&id={$rowtmp[3]}'>详细</a> | 
+                <a href='/?op=Master_start&agent={$server}&id={$rowtmp[3]}'>运行</a> | 
+                <a href='/?op=Master_stop&agent={$server}&id={$rowtmp[3]}'>停止</a>
                 </td>
                 </tr>";
             }else{

@@ -82,7 +82,7 @@ if(\$tmp)
 }
 ?>
 EOF;
-        $contents=<<<EOF
+    $contents=<<<EOF
 <?php
 pcntl_async_signals(true);
 \$runstarttime = microtime(true);
@@ -110,9 +110,11 @@ if (\$pid == -1) {
     file_put_contents("{$statusfile}", \$data);
     unlink("{$lock_file}");
     unlink("{$pid_file}");
+    exit();
 } else {
     try{
-        \$tmp = pcntl_exec("{$binfile}", {$commandstr});
+        pcntl_exec("{$binfile}", {$commandstr});
+        exit(0);
     }catch(\Exception \$e){
         \$tmp = "cron_exec_error".\$e->getMessage();
     }finally{
@@ -179,7 +181,11 @@ EOF;
                 {
                     // echo "异步模式\n";
                     // 异步模式
-                    exec("nohup php $lock_file > {$result_file} 2>&1 & echo $!", $output);
+                    // exec("nohup php $lock_file > {$result_file} 2>&1 & echo $!", $output);
+                    // exec("php $lock_file > {$result_file} & echo $!", $output);
+                    exec("php $lock_file > {$result_file}");
+                    exec("echo $!", $output);
+                    // exec("php $lock_file > /dev/null 2>&1 & echo $!", $output);
                 }else{
                     // echo "同步模式\n";
                     // 同步模式

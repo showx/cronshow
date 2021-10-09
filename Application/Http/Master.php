@@ -77,7 +77,7 @@ Class Master
         foreach($this->client as $host)
         {
             $txtArr[] = $host;
-            $clientdata = web::curlData($host, "client_list", $this->secret);
+            $clientdata = web::curlData($host, "Client_list", $this->secret);
             $txtArr = web::txtData($clientdata, $txtArr);
         }
         $result = webview::statusTable($txtArr);
@@ -97,7 +97,7 @@ Class Master
         $host = $request->get("agent", "");
         $id = $request->get("id", "");
         $param = "&id={$id}";
-        $clientdata = web::curlData($host, "client_result", $this->secret, $param);
+        $clientdata = web::curlData($host, "Client_result", $this->secret, $param);
         var_dump($clientdata);
         $connection->send("结果：".$clientdata);
     }
@@ -119,7 +119,7 @@ Class Master
         $host = $request->get("agent", "");
         $id = $request->get("id", "");
         $param = "&id={$id}";
-        $clientdata = web::curlData($host, "client_stop", $this->secret, $param);
+        $clientdata = web::curlData($host, "Client_stop", $this->secret, $param);
         var_dump($clientdata);
         $connection->send("状态".$clientdata['status']);
     }
@@ -141,7 +141,7 @@ Class Master
         $host = $request->get("agent", "");
         $id = $request->get("id", "");
         $param = "&id={$id}";
-        $clientdata = web::curlData($host, "client_start", $this->secret, $param);
+        $clientdata = web::curlData($host, "Client_start", $this->secret, $param);
         $connection->send("状态".$clientdata['status']);
     }
 

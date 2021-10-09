@@ -67,6 +67,7 @@ class WebWorker extends CronBaseWorker
         }
         $ct = $data[0];
         $ac = $data[1];
+        $ct = ucfirst($ct);
         $httpfile = $this->Http_Dir.'/'.$ct.'.php';
         if(file_exists($httpfile))
         {
